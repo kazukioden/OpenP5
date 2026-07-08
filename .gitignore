@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+
+# Virtual environments
+.venv*/
+venv/
+
+# Run outputs / artifacts (large or machine-specific)
+model/
+log/
+checkpoint/
+raw_data/ml-100k/
+raw_data/*.zip
+
+# Generated indexing files (derived from user_sequence.txt on first run)
+data/*/item_*_indexing_*.txt
+data/*/user_indexing.txt
+data/*/user_sequence_*_indexing_*.txt
+
+# Quick-smoke subset dataset
+data/ML100K_tiny/
+
+# Stray accidental file
+,
