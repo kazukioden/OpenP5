@@ -1,5 +1,12 @@
 # Overall Design — `kv-cache-eval-speedup`
 
+> **Scope of THIS branch: Stage ① only** — the KV-cache fix for evaluation.
+> Stage ② (MLX port) is **explicitly out of scope here** and lives on its own
+> branch. Do not add MLX work to this branch.
+>
+> **Status:** Stage ① complete — fix landed, correctness verified, speedup
+> measured (see `test_design.md`).
+
 ## Background
 OpenP5 (T5 backbone) now runs on the M3 Mac (MPS) after branch `mac-mps-support`.
 But it is slow. Two cost centers:
@@ -19,19 +26,23 @@ but transformers 4.26 passes the decoder cache under the keyword
 generation, so every decode step recomputes the full decoder sequence
 (O(L²) instead of O(L)). See `detail_design.md`.
 
-## Approach (staged)
-- **Stage ① (this branch):** repair `prepare_inputs_for_generation` so the KV
-  cache flows through. Verify identical outputs + measure the speedup.
-- **Stage ② (only if ① is insufficient):** PoC-port just the T5 forward +
-  training loop to Apple's MLX (reusing the HF tokenizer and, initially, HF
-  generation for validation). Tracked on a separate branch if pursued.
+## Approach (staged — for context only)
+The broader effort is staged. **This branch delivers Stage ① and nothing else.**
+- **Stage ① — THIS branch (`kv-cache-eval-speedup`):** repair
+  `prepare_inputs_for_generation` so the KV cache flows through. Verify
+  identical outputs + measure the speedup.
+- **Stage ② — SEPARATE branch (e.g. `mlx-t5-poc`), not here:** PoC-port the T5
+  forward + training loop to Apple's MLX. It has its own `docs/<branch>/` set.
+  Listed here only to explain where Stage ① sits; **no Stage ② code or design
+  belongs on this branch.**
 
 ## Scope
 **In:** `src/src_t5/model/P5_T5.py` generation-input plumbing; an A/B
 benchmark harness (`tests/bench_generate.py`); this documentation.
 
-**Out:** training-loop speed; the LLaMA path; collaborative indexing; any
-change to model weights, prompts, metrics, or data.
+**Out (explicitly):** the Stage ② MLX port (separate branch); training-loop
+speed; the LLaMA path; collaborative indexing; any change to model weights,
+prompts, metrics, or data.
 
 ## Success criteria
 - **Correctness (blocking):** constrained beam-search predictions (top-k item

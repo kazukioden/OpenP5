@@ -71,5 +71,6 @@ KV cache touches. Training speed is unaffected by this change.
 
 **Implication for staging:** ① is a correct, free win but does not make MPS
 evaluation dramatically faster, and does nothing for training. If overall Mac
-speed is still the blocker, that motivates stage ② (MLX) — though note even MLX
-cannot beat a real GPU; for pure reproduction speed, a cloud GPU remains best.
+speed is still the blocker, that motivates stage ② (MLX) — **which is pursued on
+a separate branch, not here** — though note even MLX cannot beat a real GPU; for
+pure reproduction speed, a cloud GPU remains best.
