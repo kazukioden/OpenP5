@@ -83,10 +83,16 @@ def single_main():
     utils.set_seed(args.seed)
     
     args.rank = 0
-    
-    device = torch.device("cuda", int(args.gpu.split(',')[0]))
-    
-    
+
+    if torch.cuda.is_available():
+        device = torch.device("cuda", int(args.gpu.split(',')[0]))
+    elif torch.backends.mps.is_available():
+        device = torch.device("mps")
+    else:
+        device = torch.device("cpu")
+    logging.info(f"Using device: {device}")
+
+
     logging.info(vars(args))
     
     tokenizer = AutoTokenizer.from_pretrained(args.backbone)

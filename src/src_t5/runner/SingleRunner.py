@@ -1,8 +1,10 @@
 import torch
+import numpy as np
 from transformers import AdamW, get_linear_schedule_with_warmup
 import logging
 from tqdm import tqdm
 from utils import utils
+from utils import evaluate
 import utils.generation_trie as gt
 from data.TestDataset import TestDataset
 from torch.utils.data import DataLoader
@@ -116,9 +118,7 @@ class SingleRunner:
             train_epoch_loss = sum(losses)/len(losses)
             train_losses.append(train_epoch_loss)
             logging.info(f"The average training loss for epoch {epoch+1} is {train_epoch_loss}")
-            
-            self.test()
-            
+
             if self.valid_select > 0:
                 logging.info(f"Start validation for epoch {epoch+1}")
                 losses = []
@@ -162,14 +162,15 @@ class SingleRunner:
                 if (epoch + 1) % self.test_epoch == 0:
                     self.model.eval()
                     self.test()
-            
-            dist.barrier()
+
+            if self.args.distributed:
+                dist.barrier()
         if self.valid_select > 0:
-            if self.rank == 0:
+            if self.args.rank == 0:
                 logging.info(f"The best validation at Epoch {best_epoch}")
         else:
-            if self.rank == 0:
-                torch.save(self.model.module.state_dict(), self.args.model_path)
+            if self.args.rank == 0:
+                torch.save(self.model.state_dict(), self.args.model_path)
                 logging.info(f"Save the current model to {self.args.model_path}")
                 
             
@@ -270,7 +271,7 @@ class SingleRunner:
                 output_attention = batch[4].to(self.device)
                 user_idx = batch[5].to(self.device)
                 
-                prediction = self.model.module.generate(
+                prediction = self.model.generate(
                         input_ids=input_ids,
                         attention_mask=attn,
                         whole_word_ids=whole_input_ids,
@@ -300,8 +301,8 @@ class SingleRunner:
                 
                 metrics_res += evaluate.get_metrics_results(rel_results, self.metrics)
                 
-            metrics_res = torch.tensor(metrics_res).to(self.device)
-            test_total = torch.tensor(test_total).to(self.device)
+            metrics_res = np.array(metrics_res, dtype=np.float64)
+            test_total = test_total
             
             metrics_res /= test_total
             
@@ -335,7 +336,7 @@ class SingleRunner:
                 )
                 prefix_allowed_tokens = gt.prefix_allowed_tokens_fn(candidate_trie)
                 
-                prediction = self.model.module.generate(
+                prediction = self.model.generate(
                         input_ids=input_ids,
                         attention_mask=attn,
                         whole_word_ids=whole_input_ids,
@@ -363,8 +364,8 @@ class SingleRunner:
                 
                 metrics_res += evaluate.get_metrics_results(rel_results, self.metrics)
                 
-            metrics_res = torch.tensor(metrics_res).to(self.device)
-            test_total = torch.tensor(test_total).to(self.device)
+            metrics_res = np.array(metrics_res, dtype=np.float64)
+            test_total = test_total
             
             metrics_res /= test_total
             
@@ -393,7 +394,7 @@ class SingleRunner:
                 output_ids = batch[3].to(self.device)
                 output_attention = batch[4].to(self.device)
                 
-                prediction = self.model.module.generate(
+                prediction = self.model.generate(
                         input_ids=input_ids,
                         attention_mask=attn,
                         whole_word_ids=whole_input_ids,
@@ -423,8 +424,8 @@ class SingleRunner:
                 
                 metrics_res += evaluate.get_metrics_results(rel_results, self.metrics)
                 
-            metrics_res = torch.tensor(metrics_res).to(self.device)
-            test_total = torch.tensor(test_total).to(self.device)
+            metrics_res = np.array(metrics_res, dtype=np.float64)
+            test_total = test_total
             
             metrics_res /= test_total
             
