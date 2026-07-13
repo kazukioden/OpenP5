@@ -8,11 +8,12 @@ __pycache__/
 venv/
 
 # Run outputs / artifacts (large or machine-specific)
-model/
-log/
-checkpoint/
-raw_data/ml-100k/
-raw_data/*.zip
+# anchored to repo root so src/src_t5/model/ etc. are NOT ignored
+/model/
+/log/
+/checkpoint/
+/raw_data/ml-100k/
+/raw_data/*.zip
 
 # Generated indexing files (derived from user_sequence.txt on first run)
 data/*/item_*_indexing_*.txt

@@ -519,19 +519,22 @@ class P5_T5(T5ForConditionalGeneration):
     def prepare_inputs_for_generation(
         self,
         input_ids,
-        past=None,
+        past_key_values=None,
         attention_mask=None,
         use_cache=None,
         encoder_outputs=None,
         **kwargs,
     ):
 
-        if past is not None:
+        # transformers 4.26 passes the decoder cache as `past_key_values`.
+        # When it is present, only the last generated token is fed to the
+        # decoder and the cached keys/values supply the rest.
+        if past_key_values is not None:
             input_ids = input_ids[:, -1:]
 
         output = {
             "decoder_input_ids": input_ids,
-            "past_key_values": past,
+            "past_key_values": past_key_values,
             "encoder_outputs": encoder_outputs,
             "attention_mask": attention_mask,
             "use_cache": use_cache,
