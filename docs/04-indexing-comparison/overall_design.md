@@ -12,9 +12,17 @@ The reproduction confirmed the pipeline works. This branch produces the
 > model tweaks.** Random IDs ≈ memorization; structured IDs (sequential /
 > collaborative) let the model share structure and generalize.
 
-The OpenP5 paper (Tables 1-2) shows this starkly on ML100K: random indexing is
-~3x worse than sequential/collaborative on Hit@10. We reproduce that head-to-head
-on one clean plot, plus a qualitative demo of the three ID schemes.
+**Density-contrast angle (the real story).** How MUCH indexing matters depends
+on data density. We run the 3 methods on TWO datasets:
+- **ML100K** — dense (92% sparse). The paper's own gap here is modest
+  (random Hit@10 0.092 vs sequential 0.121, ~24%): on dense data even random IDs
+  have enough signal.
+- **LastFM** — sparse (98.7%). Music; our build matches OpenP5's README stats
+  EXACTLY (1090 users / 3646 items / 52551 interactions), so it also validates
+  our preprocessing. Sparser → the ID structure should matter much more.
+
+The blog claim: **"indexing matters more as data gets sparser"** — a nuanced,
+correct framing, stronger than a flat "random is always 3x worse."
 
 ## What we run
 Same model/data/training, only `--item_indexing` varies:
