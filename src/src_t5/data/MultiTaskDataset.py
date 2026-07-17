@@ -138,7 +138,7 @@ class MultiTaskDataset(Dataset):
                 logging.info(f"Reindex data with collaborative indexing method with token_size {self.collaborative_token_size} and {self.collaborative_cluster_num} cluster")
                 self.reindex_user_seq_dict, self.item_map = indexing.collaborative_indexing(self.data_path, self.dataset, self.user_sequence_dict, \
                                                                                             self.collaborative_token_size, self.collaborative_cluster_num, \
-                                                                                            self.collaborative_last_token, self.collaborative_sparse, self.collaborative_float32)
+                                                                                            self.collaborative_last_token, self.collaborative_float32)
                 self.new_token = []
                 for idx in list(self.item_map.values()):
                     self.new_token += re.findall(r'\<.*?\>', idx)
