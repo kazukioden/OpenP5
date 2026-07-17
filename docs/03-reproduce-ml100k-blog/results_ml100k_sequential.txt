@@ -1,0 +1,71 @@
+{'seed': 2023, 'model_dir': './model', 'checkpoint_dir': './checkpoint', 'model_name': 'model.pt', 'log_dir': './log', 'distributed': 0, 'gpu': '0', 'master_addr': 'localhost', 'master_port': '12345', 'logging_level': 20, 'data_path': './data', 'item_indexing': 'sequential', 'tasks': 'sequential,straightforward', 'datasets': 'ML100K', 'prompt_file': './prompt.txt', 'sequential_order': 'original', 'collaborative_token_size': 200, 'collaborative_cluster': 20, 'collaborative_last_token': 'sequential', 'collaborative_float32': 0, 'max_his': 20, 'his_prefix': 1, 'his_sep': ' , ', 'skip_empty_his': 1, 'valid_prompt': 'seen:0', 'valid_prompt_sample': 1, 'valid_sample_num': '3,3', 'test_prompt': 'seen:0', 'sample_prompt': 1, 'sample_num': '3,3', 'batch_size': 64, 'eval_batch_size': 32, 'dist_sampler': 0, 'optim': 'AdamW', 'epochs': 20, 'lr': 0.001, 'clip': 1, 'logging_step': 100, 'warmup_prop': 0.05, 'gradient_accumulation_steps': 1, 'weight_decay': 0.01, 'adam_eps': 1e-06, 'dropout': 0.1, 'alpha': 2, 'train': 1, 'backbone': 't5-small', 'metrics': 'hit@5,hit@10,ndcg@5,ndcg@10', 'load': 0, 'random_initialize': 1, 'test_epoch': 5, 'valid_select': 0, 'test_before_train': 0, 'test_filtered': 0, 'test_filtered_batch': 1, 'log_name': '0_1_1_1_20_12345_ML100K_sequential,straightforward_t5-small_sequential_0.001_20_64_3,3_rompt', 'model_path': './model/ML100K/0_1_1_1_20_12345_ML100K_sequential,straightforward_t5-small_sequential_0.001_20_64_3,3_rompt.pt', 'rank': 0}
+The average training loss for epoch 1 is 0.9996761679649353
+The average training loss for epoch 2 is 0.722110390663147
+The average training loss for epoch 3 is 0.697413980960846
+The average training loss for epoch 4 is 0.684542715549469
+The average training loss for epoch 5 is 0.6757426261901855
+testing ML100K dataset on sequential task
+hit@5: 0.051961823966065745
+hit@10: 0.09968186638388123
+ndcg@5: 0.03178634756974515
+ndcg@10: 0.04692087038967414
+testing ML100K dataset on straightforward task
+hit@5: 0.02545068928950159
+hit@10: 0.042417815482502653
+ndcg@5: 0.016397299603868556
+ndcg@10: 0.021894963603037585
+The average training loss for epoch 6 is 0.6678762435913086
+The average training loss for epoch 7 is 0.6605095863342285
+The average training loss for epoch 8 is 0.6530208587646484
+The average training loss for epoch 9 is 0.6449024677276611
+The average training loss for epoch 10 is 0.6359214782714844
+testing ML100K dataset on sequential task
+hit@5: 0.05832449628844114
+hit@10: 0.12301166489925769
+ndcg@5: 0.035197584662478174
+ndcg@10: 0.05581631277541029
+testing ML100K dataset on straightforward task
+hit@5: 0.010604453870625663
+hit@10: 0.036055143160127257
+ndcg@5: 0.004760015606024282
+ndcg@10: 0.01295865053168001
+The average training loss for epoch 11 is 0.6258496046066284
+The average training loss for epoch 12 is 0.6140991449356079
+The average training loss for epoch 13 is 0.6005295515060425
+The average training loss for epoch 14 is 0.5856367349624634
+The average training loss for epoch 15 is 0.5693833231925964
+testing ML100K dataset on sequential task
+hit@5: 0.04559915164369035
+hit@10: 0.08695652173913043
+ndcg@5: 0.02632318853616117
+ndcg@10: 0.03963810807335721
+testing ML100K dataset on straightforward task
+hit@5: 0.0021208907741251328
+hit@10: 0.003181336161187699
+ndcg@5: 0.000866945244228987
+ndcg@10: 0.001220427039916509
+The average training loss for epoch 16 is 0.5522651672363281
+The average training loss for epoch 17 is 0.5350033044815063
+The average training loss for epoch 18 is 0.5183594226837158
+The average training loss for epoch 19 is 0.5036636590957642
+The average training loss for epoch 20 is 0.49257853627204895
+testing ML100K dataset on sequential task
+hit@5: 0.03923647932131495
+hit@10: 0.06680805938494168
+ndcg@5: 0.023750736333249464
+ndcg@10: 0.03257084876516711
+testing ML100K dataset on straightforward task
+hit@5: 0.0
+hit@10: 0.0010604453870625664
+ndcg@5: 0.0
+ndcg@10: 0.000306537461630846
+testing ML100K dataset on sequential task
+hit@5: 0.03923647932131495
+hit@10: 0.06680805938494168
+ndcg@5: 0.023750736333249464
+ndcg@10: 0.03257084876516711
+testing ML100K dataset on straightforward task
+hit@5: 0.0
+hit@10: 0.0010604453870625664
+ndcg@5: 0.0
+ndcg@10: 0.000306537461630846
