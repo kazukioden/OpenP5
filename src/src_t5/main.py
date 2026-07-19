@@ -104,10 +104,11 @@ def single_main():
     
     if 't5' in args.backbone:
         config = T5Config.from_pretrained(args.backbone)
-        logging.info(f"Use {args.backbone} backbone model")
+        config.loop_k = args.loop_k  # looped transformer depth (1 = original)
+        logging.info(f"Use {args.backbone} backbone model (loop_k={args.loop_k})")
     else:
         raise NotImplementError
-        
+
     model = P5_T5.from_pretrained(args.backbone, config=config)
     model.to(device)
     

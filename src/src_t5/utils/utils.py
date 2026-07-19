@@ -20,7 +20,8 @@ def parse_global_args(parser):
     parser.add_argument("--master_addr", type=str, default='localhost', help='Setup MASTER_ADDR for os.environ')
     parser.add_argument("--master_port", type=str, default='12345', help='Setup MASTER_PORT for os.environ')
     parser.add_argument('--logging_level', type=int, default=logging.INFO,help='Logging Level, 0, 10, ..., 50')
-    
+    parser.add_argument('--loop_k', type=int, default=1, help='Looped transformer: run the decoder stack K times (weight-tied). 1 = original.')
+
     return parser
 
 def set_seed(seed):

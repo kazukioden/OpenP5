@@ -334,22 +334,31 @@ class P5_T5(T5ForConditionalGeneration):
             )
         encoder_attention_mask = attention_mask
 
-        # Decode
-        decoder_outputs = self.decoder(
-            input_ids=decoder_input_ids,
-            attention_mask=decoder_attention_mask,
-            inputs_embeds=decoder_inputs_embeds,
-            past_key_values=past_key_values,
-            encoder_hidden_states=hidden_states,
-            encoder_attention_mask=encoder_attention_mask,
-            head_mask=head_mask,
-            use_cache=use_cache,
-            output_attentions=output_attentions,
-            output_hidden_states=output_hidden_states,
-            return_dict=return_dict,
-        )
-
-        sequence_output = decoder_outputs[0]
+        # Decode — looped transformer: run the SAME decoder stack loop_k times
+        # (weight-tied depth recurrence). Pass 0 embeds the tokens; later passes
+        # feed the previous pass's hidden states back as inputs_embeds. loop_k=1
+        # is byte-identical to the original single-pass decode.
+        loop_k = int(getattr(self.config, "loop_k", 1) or 1)
+        # per-step KV caching is inconsistent under looping -> disable when loop_k>1
+        # (loop_k=1 keeps the fast cached generation path).
+        dec_use_cache = bool(use_cache) and (loop_k == 1)
+        sequence_output = None
+        decoder_outputs = None
+        for _i in range(loop_k):
+            decoder_outputs = self.decoder(
+                input_ids=(decoder_input_ids if _i == 0 else None),
+                attention_mask=decoder_attention_mask,
+                inputs_embeds=(decoder_inputs_embeds if _i == 0 else sequence_output),
+                past_key_values=past_key_values,
+                encoder_hidden_states=hidden_states,
+                encoder_attention_mask=encoder_attention_mask,
+                head_mask=head_mask,
+                use_cache=dec_use_cache,
+                output_attentions=output_attentions,
+                output_hidden_states=output_hidden_states,
+                return_dict=return_dict,
+            )
+            sequence_output = decoder_outputs[0]
 
         assert self.config.tie_word_embeddings is True
 
