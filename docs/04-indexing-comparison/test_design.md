@@ -30,12 +30,29 @@ config, `--valid_select 1` so each method reports its best-by-validation model
 datasets; the ~3x gap is most dramatic on large sparse sets. Our plot will show
 ML100K honestly and can cite the cross-dataset trend.)
 
-## Results (to fill)
-| method | Hit@5 | Hit@10 | NDCG@5 | NDCG@10 | notes |
-|---|---|---|---|---|---|
-| random | _tbd_ | _tbd_ | _tbd_ | _tbd_ | |
-| sequential | _tbd_ | _tbd_ | _tbd_ | _tbd_ | |
-| collaborative | _tbd_ | _tbd_ | _tbd_ | _tbd_ | |
+## Results (2026-07-18, 3x parallel A10, sample 3,3 / batch128 / 12ep / valid_select=1)
+Sequential task, best-by-validation model.
+
+**ML100K (dense, 92.2% sparse)**
+| method | Hit@5 | Hit@10 | NDCG@5 | NDCG@10 |
+|---|---|---|---|---|
+| random | **0.0753** | **0.1230** | **0.0450** | **0.0602** |
+| sequential | 0.0626 | 0.1050 | 0.0409 | 0.0545 |
+| collaborative | 0.0488 | 0.0954 | 0.0300 | 0.0450 |
+
+**LastFM (sparse, 98.7% sparse)**
+| method | Hit@5 | Hit@10 | NDCG@5 | NDCG@10 |
+|---|---|---|---|---|
+| random | 0.0211 | 0.0312 | 0.0143 | 0.0176 |
+| sequential | 0.0229 | 0.0312 | 0.0139 | 0.0166 |
+| collaborative | **0.0266** | **0.0385** | **0.0162** | **0.0202** |
+
+**Finding:** density-dependent. On dense ML100K, random is competitive/best (structure
+doesn't help). On sparse LastFM, collaborative wins (+23% Hit@10 over random). BUT single
+run per cell — high variance (our ML100K sequential 0.105 < paper 0.121 while random 0.123
+> paper 0.092 = seed luck). The dramatic "structure wins 3x+" is on far sparser sets
+(Yelp/Clothing 99.9%+). Honest claim: "direction holds (sparser -> structure helps more),
+but a rigorous claim needs multi-seed + a very sparse dataset."
 
 ## Blog deliverables
 - One grouped bar chart (4 metrics × 3 methods).

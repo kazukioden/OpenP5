@@ -25,3 +25,4 @@ data/ML100K_tiny/
 
 # Stray accidental file
 ,
+/raw_data/lastfm/
