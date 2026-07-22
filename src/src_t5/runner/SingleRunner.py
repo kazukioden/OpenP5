@@ -390,13 +390,14 @@ class SingleRunner:
             prefix_allowed_tokens = gt.prefix_allowed_tokens_fn(candidate_trie)
             
             metrics_res = np.array([0.0] * len(self.metrics))
+            top1 = []  # self-bootstrap collapse canary: top-1 recommended item per user
             for batch in tqdm(testloader):
                 input_ids = batch[0].to(self.device)
                 attn = batch[1].to(self.device)
                 whole_input_ids = batch[2].to(self.device)
                 output_ids = batch[3].to(self.device)
                 output_attention = batch[4].to(self.device)
-                
+
                 prediction = self.model.generate(
                         input_ids=input_ids,
                         attention_mask=attn,
@@ -418,19 +419,30 @@ class SingleRunner:
                 generated_sents = self.tokenizer.batch_decode(
                     prediction_ids, skip_special_tokens=True
                 )
-                
-                # print(generated_sents)
-                # exit()
+
+                nuser = len(generated_sents) // self.generate_num
+                for _u in range(nuser):
+                    top1.append(generated_sents[_u * self.generate_num])  # highest-scored beam
+
                 rel_results = evaluate.rel_results(generated_sents, gold_sents, prediction_scores, self.generate_num)
-                
+
                 test_total += len(rel_results)
-                
+
                 metrics_res += evaluate.get_metrics_results(rel_results, self.metrics)
-                
+
             metrics_res = np.array(metrics_res, dtype=np.float64)
             test_total = test_total
-            
+
             metrics_res /= test_total
-            
+
             for i in range(len(self.metrics)):
                 logging.info(f'{self.metrics[i]}: {metrics_res[i]}')
+
+            # collapse canary: how concentrated are the top-1 recommendations?
+            if len(top1) > 0:
+                from collections import Counter
+                cnt = Counter(top1)
+                cov = len(cnt) / len(top1)
+                p = np.array(list(cnt.values()), dtype=np.float64); p = p / p.sum()
+                ent = float(-(p * np.log(p + 1e-12)).sum() / np.log(len(top1) + 1e-12))
+                logging.info(f'diversity: distinct_top1={len(cnt)}/{len(top1)} coverage={cov:.4f} norm_entropy={ent:.4f}')
