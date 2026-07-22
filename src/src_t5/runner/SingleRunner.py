@@ -106,7 +106,10 @@ class SingleRunner:
                 lm_mask = lm_mask.float()
                 B, L = output_ids.size()
                 loss = loss.view(B, L) * lm_mask
-                loss = (loss.sum(dim=1) / lm_mask.sum(dim=1).clamp(min=1)).mean()
+                per_ex = loss.sum(dim=1) / lm_mask.sum(dim=1).clamp(min=1)
+                # self-bootstrap: weighted loss (real=1.0, pseudo=pseudo_weight)
+                w = batch[5].to(self.device) if len(batch) > 5 else torch.ones_like(per_ex)
+                loss = (per_ex * w).sum() / w.sum().clamp(min=1)
 
                 # update
                 loss.backward()

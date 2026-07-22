@@ -25,14 +25,16 @@ class Collator:
         output_ids = outputs["input_ids"]
         output_attention = outputs["attention_mask"]
 
+        weights = [b.get('weight', 1.0) for b in batch]
         return (
             torch.tensor(input_ids),
             torch.tensor(input_attention),
             torch.tensor(whole_word_ids),
             torch.tensor(output_ids),
             torch.tensor(output_attention),
+            torch.tensor(weights, dtype=torch.float),
         )
-    
+
 class TestCollator:
     def __init__(self, tokenizer):
         self.tokenizer = tokenizer

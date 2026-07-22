@@ -49,7 +49,11 @@ class MultiTaskDataset(Dataset):
         # arguments related to prompt sampling
         parser.add_argument("--sample_prompt", type=int, default=0, help='sample prompt or not')
         parser.add_argument("--sample_num", type=str, default='2,2,2', help='the number of sampled data for each task')
-        
+
+        # self-bootstrap: extra pseudo-labeled training rows (train mode only)
+        parser.add_argument("--pseudo_file", type=str, default='', help='path to pseudo labels "user_id<TAB>reindexed_item_id" (self-bootstrap). empty = off')
+        parser.add_argument("--pseudo_weight", type=float, default=0.3, help='loss weight for pseudo rows (real rows = 1.0)')
+
         return parser
         
     def __init__(self, args, dataset, mode):
@@ -70,7 +74,17 @@ class MultiTaskDataset(Dataset):
         self.collaborative_cluster_num = self.args.collaborative_cluster
         self.collaborative_last_token = self.args.collaborative_last_token
         self.collaborative_float32 = self.args.collaborative_float32
-        
+
+        # self-bootstrap: load pseudo (user_id, reindexed_item_id) pairs (train only)
+        self.pseudo_weight = float(getattr(args, 'pseudo_weight', 0.3))
+        self.pseudo_pairs = []
+        _pf = getattr(args, 'pseudo_file', '') or ''
+        if mode == 'train' and _pf and os.path.exists(_pf):
+            for _line in utils.ReadLineFromFile(_pf):
+                _p = _line.split('\t')
+                if len(_p) >= 2:
+                    self.pseudo_pairs.append((_p[0], _p[1]))
+
         if self.rank == 0:
             logging.info(f"Generating data for {self.dataset} dataset")
         
@@ -304,7 +318,46 @@ class MultiTaskDataset(Dataset):
             if self.rank == 0:
                 logging.info(f"Input: {self.data['input'][100]} , Output: {self.data['output'][100]} ")
                 logging.info(f"Input: {self.data['input'][101]} , Output: {self.data['output'][101]} ")
-    
+        self._finalize_pseudo()
+
+    def _finalize_pseudo(self):
+        """Set per-row weights (real=1.0) and, in train mode, append pseudo rows
+        (weight=pseudo_weight) as extra (history -> pseudo-item) examples. The
+        pseudo rows' indices are added to the first task's sampling pool so the
+        SingleMultiDataTaskSampler actually draws them (reset from a clean copy
+        each epoch so they don't accumulate)."""
+        n = len(self.data['input'])
+        self.data['weight'] = [1.0] * n
+        if self.mode != 'train' or not self.pseudo_pairs:
+            return
+        host = self.tasks[0]  # attach pseudo to this task's pool (natural rate, not a separate balanced task)
+        if not hasattr(self, '_host_clean_idx'):
+            self._host_clean_idx = list(self.task_data[host])
+        tmpl = self.prompt['sequential']['seen']['0']  # fixed template for pseudo
+        maxh = self.max_his if 'history' in self.info else 0
+        pseudo_idx = []
+        for user, item in self.pseudo_pairs:
+            if user not in self.reindex_user_seq_dict:
+                continue
+            hist = self.reindex_user_seq_dict[user][:-2]  # train history (leave-one-out safe)
+            if len(hist) == 0:
+                continue
+            if maxh and maxh > 0:
+                hist = hist[-maxh:]
+            one = {'dataset': self.dataset, 'user_id': user}
+            one['target'] = ('item_' + item) if self.prefix > 0 else item
+            if 'history' in self.info:
+                one['history'] = self.his_sep.join(
+                    ["item_" + h for h in hist] if self.prefix > 0 else hist)
+            pseudo_idx.append(len(self.data['input']))
+            self.data['input'].append(tmpl['Input'].format(**one))
+            self.data['output'].append(tmpl['Output'].format(**one))
+            self.data['weight'].append(self.pseudo_weight)
+        # add pseudo indices to the host task's pool so the sampler draws them
+        self.task_data[host] = self._host_clean_idx + pseudo_idx
+        if self.rank == 0:
+            logging.info(f"[self-bootstrap] appended {len(pseudo_idx)} pseudo rows to task '{host}' (weight={self.pseudo_weight})")
+
     def _construct_sentence_valid(self):
         self.data = {}
         self.data['input'] = []
@@ -349,4 +402,5 @@ class MultiTaskDataset(Dataset):
         #        'output': prompt['Output'].format(**datapoint)}
         
         return {'input': self.data['input'][idx],
-               'output': self.data['output'][idx]}
+               'output': self.data['output'][idx],
+               'weight': self.data.get('weight', [1.0] * len(self.data['input']))[idx]}

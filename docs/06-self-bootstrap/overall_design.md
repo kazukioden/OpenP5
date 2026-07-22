@@ -39,6 +39,11 @@ everyone → homogenize). Mitigations, all in the design:
   RL target-network trick).
 - **Low pseudo weight** λ so real labels dominate; cap #pseudo per user.
 - Watch a diversity/coverage metric across rounds, not just Hit@k.
+- **(optional, only if collapse appears) KL-anchor / self-distillation to the
+  frozen base M0** — regularize M_r toward M0's output distribution to bound the
+  self-reinforcement drift (the transferable idea from CriPO, arXiv:2607.18082,
+  which uses on-policy self-distillation to suppress cumulative error). NOT used
+  in the first plain run; kept as a lever if the diversity metric shows collapse.
 
 ## Eval-protocol care
 Pseudo-labels augment **training only**. The leave-one-out test/validation items
